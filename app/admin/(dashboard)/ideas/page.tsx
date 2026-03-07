@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Idea, Category } from '@/types/database';
 import IdeaCard from '@/components/admin/IdeaCard';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Edit, Trash2, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 
