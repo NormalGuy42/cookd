@@ -1,0 +1,21 @@
+{
+  "name": "Cookd - Where Great Ideas Get Cooked",
+  "short_name": "Cookd",
+  "description": "A platform celebrating human creativity and ingenuity. Submit your idea, and we'll bring it to life.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFDF9",
+  "theme_color": "#FF6B35",
+  "icons": [
+    {
+      "src": "/cookd-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/cookd-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
