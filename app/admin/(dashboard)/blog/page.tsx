@@ -662,18 +662,5 @@ export default function AdminBlog() {
       />
     </div>
   );
-
-      <ConfirmModal
-        isOpen={deleteModal.isOpen}
-        onClose={closeDeleteModal}
-        onConfirm={handleDelete}
-        title="Delete Post"
-        message={`Are you sure you want to delete "${deleteModal.postTitle}"? This action cannot be undone.`}
-        confirmText="Delete"
-        variant="danger"
-        loading={deleting}
-      />
-    </div>
-  );
 }
 

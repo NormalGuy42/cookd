@@ -595,21 +595,4 @@ export default function AdminIdeas() {
       />
     </div>
   );
-
-      <ConfirmModal
-        isOpen={deleteModal.isOpen}
-        onClose={closeDeleteModal}
-        onConfirm={handleDelete}
-        title={`Delete ${deleteModal.type === 'idea' ? 'Idea' : 'Category'}`}
-        message={
-          deleteModal.type === 'category'
-            ? `Are you sure you want to delete "${deleteModal.name}"? Ideas in this category will be unassigned.`
-            : `Are you sure you want to delete "${deleteModal.name}"? This action cannot be undone.`
-        }
-        confirmText="Delete"
-        variant="danger"
-        loading={deleting}
-      />
-    </div>
-  );
 }
