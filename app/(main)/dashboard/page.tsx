@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Order, Profile } from '@/types/database';
 import { useRouter } from 'next/navigation';
-import { Package, CheckCircle, XCircle, Clock, Trophy, LogOut, Plus, Edit2, Save, X, Mail, AlertCircle, Lightbulb, User, Camera, EyeOff, PartyPopper } from 'lucide-react';
+import { Package, CheckCircle, XCircle, Clock, Trophy, LogOut, Plus, Edit2, Save, X, Mail, AlertCircle, Lightbulb, User, EyeOff, PartyPopper } from 'lucide-react';
 import Link from 'next/link';
 import AllPricingModal from '@/components/AllPricingModal';
 import Image from 'next/image';
@@ -23,7 +23,6 @@ export default function UserDashboard() {
   const [showAccountMessage, setShowAccountMessage] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [linkedOrdersMessage, setLinkedOrdersMessage] = useState<string | null>(null);
-  // Profile state
   const [profile, setProfile] = useState<Profile | null>(null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -38,13 +37,11 @@ export default function UserDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user just completed a payment
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const sessionId = urlParams.get('session_id');
       if (sessionId) {
         setShowAccountMessage(true);
-        // Clean up URL
         window.history.replaceState({}, '', '/dashboard');
       }
     }
@@ -52,11 +49,8 @@ export default function UserDashboard() {
   }, []);
 
   const initializeData = async () => {
-    // First, try to link any orders made with the same email
     await linkOrdersByEmail();
-    // Then fetch data
     await fetchData();
-    // Fetch profile
     await fetchProfile();
   };
 
@@ -84,7 +78,7 @@ export default function UserDashboard() {
       .eq('id', user.id)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = not found
+    if (error && error.code !== 'PGRST116') {
       console.error('Error fetching profile:', error);
     }
     
@@ -99,9 +93,8 @@ export default function UserDashboard() {
     }
   };
 
-  // Validate Twitter URL
   const isValidTwitterUrl = (url: string): boolean => {
-    if (!url) return true; // Empty is valid (optional)
+    if (!url) return true;
     const twitterRegex = /^https?:\/\/(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]{1,15}\/?$/;
     return twitterRegex.test(url);
   };
@@ -134,7 +127,6 @@ export default function UserDashboard() {
   const saveProfile = async () => {
     if (!userId) return;
     
-    // Validate Twitter URL
     if (profileForm.twitter_url && !isValidTwitterUrl(profileForm.twitter_url)) {
       setTwitterError('Please enter a valid Twitter/X profile URL (e.g., https://x.com/username)');
       return;
@@ -143,7 +135,6 @@ export default function UserDashboard() {
     
     setSavingProfile(true);
     
-    // Check if profile exists
     const { data: existing } = await supabase
       .from('profiles')
       .select('id')
@@ -152,7 +143,6 @@ export default function UserDashboard() {
 
     let error;
     if (existing) {
-      // Update existing profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -164,7 +154,6 @@ export default function UserDashboard() {
         .eq('id', userId);
       error = updateError;
     } else {
-      // Insert new profile
       const { error: insertError } = await supabase
         .from('profiles')
         .insert({
@@ -193,9 +182,9 @@ export default function UserDashboard() {
   
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="text-green-400" size={20} />;
-      case 'failed': return <XCircle className="text-red-400" size={20} />;
-      default: return <Clock className="text-yellow-400" size={20} />;
+      case 'completed': return <CheckCircle className="text-[var(--cookd-green)]" size={20} />;
+      case 'failed': return <XCircle className="text-red-500" size={20} />;
+      default: return <Clock className="text-yellow-500" size={20} />;
     }
   };
 
@@ -203,7 +192,7 @@ export default function UserDashboard() {
     if (amount === 30000) return 'Premium ($300)';
     if (amount === 15000) return 'Standard ($150)';
     if (amount === 7500) return 'Hall of Famer ($75)';
-    if (amount === 5000) return 'Bare Minimum ($50)';
+    if (amount === 5000) return 'Basic ($50)';
     return formatAmount(amount);
   };
 
@@ -256,46 +245,46 @@ export default function UserDashboard() {
     } else {
       setEditingOrderId(null);
       toast.success('Idea saved successfully!');
-      fetchData(); // Refresh orders
+      fetchData();
     }
     setSaving(null);
   };
 
-  // Count orders that need idea submission (need both project name and description)
   const ordersNeedingIdea = orders.filter(
     (o) => o.status === 'completed' && (!o.idea_description || !o.project_name)
   );
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-[#f8f8f8] p-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-gray-400">Loading...</div>
+      <div className="min-h-screen bg-[var(--surface-cream)] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-[var(--cookd-orange)]/20 border-t-[var(--cookd-orange)] rounded-full animate-spin" />
+          <div className="text-[var(--text-muted)] font-medium">Loading your dashboard...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-[#f8f8f8] p-4 sm:p-6 md:p-8">
+    <div className="min-h-screen bg-[var(--surface-cream)] p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">My Dashboard</h1>
-            <p className="text-gray-400 text-sm sm:text-base">Welcome, {userEmail}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] font-display mb-2">My Dashboard</h1>
+            <p className="text-[var(--text-secondary)] text-sm sm:text-base">Welcome back, {userEmail}</p>
           </div>
           <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
             <button 
               onClick={() => setShowPricingModal(true)}
-              className="btn-secondary flex items-center gap-2 text-sm sm:text-base px-3 sm:px-4 py-2"
+              className="btn-primary flex items-center gap-2 text-sm sm:text-base px-4 sm:px-6 py-2.5"
             >
               <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
-              <span className="hidden sm:inline">Purchase More</span>
-              <span className="sm:hidden">Purchase</span>
+              <span className="hidden sm:inline">New Project</span>
+              <span className="sm:hidden">New</span>
             </button>
             <button
               onClick={handleLogout}
-              className="btn-secondary flex items-center gap-2 text-red-400 hover:bg-red-900/10 hover:text-red-300 text-sm sm:text-base px-3 sm:px-4 py-2"
+              className="flex items-center gap-2 px-4 py-2.5 text-red-500 hover:bg-red-50 rounded-xl font-medium transition-all text-sm sm:text-base"
             >
               <LogOut size={16} className="sm:w-[18px] sm:h-[18px]" />
               <span className="hidden sm:inline">Log Out</span>
@@ -305,22 +294,24 @@ export default function UserDashboard() {
         </div>
 
         {showAccountMessage && (
-          <div className="mb-6 bg-[#0d0d0d] border border-[#d4a017] rounded-lg p-4 sm:p-6">
+          <div className="mb-6 bg-white border-2 border-[var(--cookd-orange)] rounded-2xl p-4 sm:p-6 shadow-sm">
             <div className="flex items-start gap-3 sm:gap-4">
-              <Mail className="text-[#d4a017] mt-1 flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6" />
+              <div className="w-12 h-12 bg-[var(--cookd-orange)]/10 rounded-xl flex items-center justify-center shrink-0">
+                <PartyPopper className="text-[var(--cookd-orange)] w-6 h-6" />
+              </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-base sm:text-lg font-bold text-white mb-2 flex items-center gap-2">
-                  Payment Successful! <PartyPopper size={20} className="text-[var(--cookd-golden)]" />
+                <h3 className="text-lg sm:text-xl font-bold text-[var(--text-primary)] font-display mb-2">
+                  Payment Successful!
                 </h3>
-                <p className="text-gray-300 mb-2 text-sm sm:text-base">
+                <p className="text-[var(--text-secondary)] mb-2 text-sm sm:text-base">
                   Your payment has been processed successfully. We've sent a password reset email to your email address.
                 </p>
-                <p className="text-gray-400 text-xs sm:text-sm">
+                <p className="text-[var(--text-muted)] text-xs sm:text-sm">
                   Please check your email and click the password reset link to set your password and log in.
                 </p>
                 <button
                   onClick={() => setShowAccountMessage(false)}
-                  className="mt-4 text-xs sm:text-sm text-[#d4a017] hover:text-[#e5b030]"
+                  className="mt-4 text-xs sm:text-sm text-[var(--cookd-orange)] hover:underline font-medium"
                 >
                   Dismiss
                 </button>
@@ -330,17 +321,17 @@ export default function UserDashboard() {
         )}
 
         {linkedOrdersMessage && (
-          <div className="mb-6 bg-green-900/20 border border-green-700 rounded-lg p-4 sm:p-6">
+          <div className="mb-6 bg-[var(--cookd-green)]/10 border border-[var(--cookd-green)]/20 rounded-2xl p-4 sm:p-6">
             <div className="flex items-start gap-3 sm:gap-4">
-              <CheckCircle className="text-green-400 mt-1 flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6" />
+              <CheckCircle className="text-[var(--cookd-green)] mt-1 flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6" />
               <div className="flex-1 min-w-0">
-                <h3 className="text-base sm:text-lg font-bold text-white mb-2">Orders Linked!</h3>
-                <p className="text-gray-300 text-sm sm:text-base">
+                <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] font-display mb-2">Orders Linked!</h3>
+                <p className="text-[var(--text-secondary)] text-sm sm:text-base">
                   {linkedOrdersMessage}
                 </p>
                 <button
                   onClick={() => setLinkedOrdersMessage(null)}
-                  className="mt-4 text-xs sm:text-sm text-green-400 hover:text-green-300"
+                  className="mt-4 text-xs sm:text-sm text-[var(--cookd-green)] hover:underline font-medium"
                 >
                   Dismiss
                 </button>
@@ -350,16 +341,16 @@ export default function UserDashboard() {
         )}
 
         {/* Profile Section */}
-        <div className="mb-6 bg-[#0d0d0d] border border-gray-800 rounded-lg overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-gray-800 flex items-center justify-between">
-            <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+        <div className="mb-6 bg-white border border-[var(--border-light)] rounded-2xl overflow-hidden shadow-sm">
+          <div className="p-4 sm:p-6 border-b border-[var(--border-light)] flex items-center justify-between">
+            <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)] font-display flex items-center gap-2">
               <User size={20} className="sm:w-6 sm:h-6" />
               My Profile
             </h2>
             {!editingProfile && (
               <button
                 onClick={() => setEditingProfile(true)}
-                className="text-sm text-gray-400 hover:text-white flex items-center gap-1"
+                className="text-sm text-[var(--text-muted)] hover:text-[var(--cookd-orange)] flex items-center gap-1 font-medium"
               >
                 <Edit2 size={14} />
                 Edit
@@ -370,9 +361,8 @@ export default function UserDashboard() {
           <div className="p-4 sm:p-6">
             {editingProfile ? (
               <div className="space-y-4">
-                {/* Avatar Preview */}
                 <div className="flex items-center gap-4">
-                  <div className="relative w-16 h-16 rounded-full bg-gray-800 overflow-hidden flex items-center justify-center">
+                  <div className="relative w-16 h-16 rounded-2xl bg-[var(--surface-cream)] overflow-hidden flex items-center justify-center border border-[var(--border-light)]">
                     {profileForm.avatar_url ? (
                       <Image
                         src={profileForm.avatar_url}
@@ -384,11 +374,11 @@ export default function UserDashboard() {
                         }}
                       />
                     ) : (
-                      <User className="text-gray-500" size={32} />
+                      <User className="text-[var(--text-muted)]" size={32} />
                     )}
                   </div>
                   <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-400 mb-1">
+                    <label className="block text-xs font-bold text-[var(--text-primary)] mb-1">
                       Avatar URL
                     </label>
                     <input
@@ -396,14 +386,13 @@ export default function UserDashboard() {
                       value={profileForm.avatar_url}
                       onChange={(e) => setProfileForm({ ...profileForm, avatar_url: e.target.value })}
                       placeholder="https://example.com/your-avatar.jpg"
-                      className="w-full px-3 py-2 bg-[#141414] border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#d4a017]"
+                      className="w-full px-3 py-2.5 bg-[var(--surface-cream)]/50 border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--cookd-orange)] transition-colors"
                     />
                   </div>
                 </div>
 
-                {/* Display Name */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1">
+                  <label className="block text-xs font-bold text-[var(--text-primary)] mb-1">
                     Display Name
                   </label>
                   <input
@@ -411,14 +400,13 @@ export default function UserDashboard() {
                     value={profileForm.display_name}
                     onChange={(e) => setProfileForm({ ...profileForm, display_name: e.target.value })}
                     placeholder="Your display name"
-                    className="w-full px-3 py-2 bg-[#141414] border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#d4a017]"
+                    className="w-full px-3 py-2.5 bg-[var(--surface-cream)]/50 border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--cookd-orange)] transition-colors"
                   />
-                  <p className="text-xs text-gray-500 mt-1">This will be shown on your projects in the Hall of Fame</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">This will be shown on your projects in the Hall of Fame</p>
                 </div>
 
-                {/* Twitter/X Profile */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1 flex items-center gap-2">
+                  <label className="block text-xs font-bold text-[var(--text-primary)] mb-1 flex items-center gap-2">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                     </svg>
@@ -432,41 +420,39 @@ export default function UserDashboard() {
                       if (twitterError) setTwitterError(null);
                     }}
                     placeholder="https://x.com/yourusername"
-                    className={`w-full px-3 py-2 bg-[#141414] border rounded-lg text-white text-sm focus:outline-none ${
-                      twitterError ? 'border-red-500 focus:border-red-500' : 'border-gray-700 focus:border-[#d4a017]'
+                    className={`w-full px-3 py-2.5 bg-[var(--surface-cream)]/50 border rounded-xl text-[var(--text-primary)] text-sm focus:outline-none transition-colors ${
+                      twitterError ? 'border-red-500 focus:border-red-500' : 'border-[var(--border-light)] focus:border-[var(--cookd-orange)]'
                     }`}
                   />
                   {twitterError ? (
-                    <p className="text-xs text-red-400 mt-1">{twitterError}</p>
+                    <p className="text-xs text-red-500 mt-1">{twitterError}</p>
                   ) : (
-                    <p className="text-xs text-gray-500 mt-1">Link your Twitter/X profile to show on your projects</p>
+                    <p className="text-xs text-[var(--text-muted)] mt-1">Link your Twitter/X profile to show on your projects</p>
                   )}
                 </div>
 
-                {/* Anonymous Toggle */}
-                <div className="flex items-center gap-3 p-3 bg-[#141414] rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-[var(--surface-cream)]/50 rounded-xl border border-[var(--border-light)]">
                   <input
                     type="checkbox"
                     id="is_anonymous"
                     checked={profileForm.is_anonymous}
                     onChange={(e) => setProfileForm({ ...profileForm, is_anonymous: e.target.checked })}
-                    className="w-4 h-4 rounded border-gray-700 bg-[#0d0d0d] text-[#d4a017] focus:ring-[#d4a017]"
+                    className="w-4 h-4 rounded-lg border-[var(--border-light)] bg-white text-[var(--cookd-orange)] focus:ring-[var(--cookd-orange)]"
                   />
                   <label htmlFor="is_anonymous" className="flex items-center gap-2 cursor-pointer">
-                    <EyeOff size={16} className="text-gray-400" />
-                    <span className="text-sm text-gray-300">Stay Anonymous</span>
+                    <EyeOff size={16} className="text-[var(--text-muted)]" />
+                    <span className="text-sm text-[var(--text-secondary)] font-medium">Stay Anonymous</span>
                   </label>
                 </div>
-                <p className="text-xs text-gray-500 -mt-2 ml-7">
+                <p className="text-xs text-[var(--text-muted)] -mt-2 ml-7">
                   Your profile won't be shown on your projects. Only the project details will be visible.
                 </p>
 
-                {/* Actions */}
                 <div className="flex items-center gap-2 pt-2">
                   <button
                     onClick={saveProfile}
                     disabled={savingProfile}
-                    className="btn-primary text-sm px-4 py-2 flex items-center gap-2 disabled:opacity-50"
+                    className="btn-primary text-sm px-4 py-2.5 flex items-center gap-2 disabled:opacity-50"
                   >
                     <Save size={14} />
                     {savingProfile ? 'Saving...' : 'Save Profile'}
@@ -475,7 +461,6 @@ export default function UserDashboard() {
                     onClick={() => {
                       setEditingProfile(false);
                       setTwitterError(null);
-                      // Reset form to current profile
                       setProfileForm({
                         display_name: profile?.display_name || '',
                         avatar_url: profile?.avatar_url || '',
@@ -484,7 +469,7 @@ export default function UserDashboard() {
                       });
                     }}
                     disabled={savingProfile}
-                    className="btn-secondary text-sm px-4 py-2"
+                    className="btn-secondary text-sm px-4 py-2.5"
                   >
                     Cancel
                   </button>
@@ -492,8 +477,7 @@ export default function UserDashboard() {
               </div>
             ) : (
               <div className="flex items-center gap-4">
-                {/* Avatar */}
-                <div className="relative w-16 h-16 rounded-full bg-gray-800 overflow-hidden flex items-center justify-center flex-shrink-0">
+                <div className="relative w-16 h-16 rounded-2xl bg-[var(--surface-cream)] overflow-hidden flex items-center justify-center flex-shrink-0 border border-[var(--border-light)]">
                   {profile?.avatar_url && !profile?.is_anonymous ? (
                     <Image
                       src={profile.avatar_url}
@@ -502,23 +486,22 @@ export default function UserDashboard() {
                       className="object-cover"
                     />
                   ) : (
-                    <User className="text-gray-500" size={32} />
+                    <User className="text-[var(--text-muted)]" size={32} />
                   )}
                 </div>
                 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-white font-semibold">
+                    <span className="text-[var(--text-primary)] font-bold">
                       {profile?.is_anonymous ? (
-                        <span className="flex items-center gap-2 text-gray-400">
+                        <span className="flex items-center gap-2 text-[var(--text-muted)]">
                           <EyeOff size={14} />
                           Anonymous
                         </span>
                       ) : profile?.display_name ? (
                         profile.display_name
                       ) : (
-                        <span className="text-gray-500 italic">No display name set</span>
+                        <span className="text-[var(--text-muted)] italic">No display name set</span>
                       )}
                     </span>
                     {profile?.twitter_url && !profile?.is_anonymous && (
@@ -526,7 +509,7 @@ export default function UserDashboard() {
                         href={profile.twitter_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-500 hover:text-[#1DA1F2] transition-colors"
+                        className="text-[var(--text-muted)] hover:text-[#1DA1F2] transition-colors"
                         title="Twitter/X Profile"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -535,9 +518,9 @@ export default function UserDashboard() {
                       </a>
                     )}
                   </div>
-                  <div className="text-gray-400 text-sm truncate">{userEmail}</div>
+                  <div className="text-[var(--text-muted)] text-sm truncate">{userEmail}</div>
                   {!profile && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-[var(--text-muted)] mt-1">
                       Set up your profile to be featured on your Hall of Fame projects!
                     </p>
                   )}
@@ -549,23 +532,23 @@ export default function UserDashboard() {
 
         {/* Important: Submit Your Idea Alert */}
         {ordersNeedingIdea.length > 0 && (
-          <div className="mb-6 bg-gradient-to-r from-orange-900/30 to-amber-900/30 border-2 border-orange-500 rounded-xl p-4 sm:p-6 animate-pulse-subtle">
+          <div className="mb-6 bg-[var(--cookd-orange)]/5 border-2 border-[var(--cookd-orange)] rounded-2xl p-4 sm:p-6 animate-pulse-subtle">
             <div className="flex items-start gap-3 sm:gap-4">
-              <div className="p-2 bg-orange-500/20 rounded-full">
-                <AlertCircle className="text-orange-400 w-6 h-6 sm:w-8 sm:h-8" />
+              <div className="p-2 bg-[var(--cookd-orange)]/10 rounded-xl">
+                <AlertCircle className="text-[var(--cookd-orange)] w-6 h-6 sm:w-8 sm:h-8" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold text-orange-400 mb-2">
+                <h3 className="text-lg sm:text-xl font-bold text-[var(--cookd-orange)] font-display mb-2">
                   Action Required: Submit Your Project Idea!
                 </h3>
-                <p className="text-gray-200 mb-3 text-sm sm:text-base">
-                  You have <span className="font-bold text-white">{ordersNeedingIdea.length}</span> completed order{ordersNeedingIdea.length > 1 ? 's' : ''} waiting for your project idea. 
-                  <span className="font-semibold text-orange-300"> Your project cannot be built until you describe what you want!</span>
+                <p className="text-[var(--text-secondary)] mb-3 text-sm sm:text-base">
+                  You have <span className="font-bold text-[var(--text-primary)]">{ordersNeedingIdea.length}</span> completed order{ordersNeedingIdea.length > 1 ? 's' : ''} waiting for your project idea. 
+                  <span className="font-semibold text-[var(--cookd-orange)]"> Your project cannot be built until you describe what you want!</span>
                 </p>
-                <div className="bg-black/30 rounded-lg p-3 text-sm text-gray-300">
-                  <p className="font-semibold text-white mb-1">How it works:</p>
+                <div className="bg-white rounded-xl p-3 text-sm text-[var(--text-secondary)] border border-[var(--border-light)]">
+                  <p className="font-bold text-[var(--text-primary)] mb-1">How it works:</p>
                   <ol className="list-decimal list-inside space-y-1">
-                    <li>Find your order below and click <span className="text-[#d4a017] font-medium">"Submit"</span> or <span className="text-[#d4a017] font-medium">"Edit"</span></li>
+                    <li>Find your order below and click <span className="text-[var(--cookd-orange)] font-medium">"Submit"</span> or <span className="text-[var(--cookd-orange)] font-medium">"Edit"</span></li>
                     <li>Describe your project idea in detail (features, design preferences, etc.)</li>
                     <li>Save your idea — I'll review it and start building!</li>
                   </ol>
@@ -575,18 +558,20 @@ export default function UserDashboard() {
           </div>
         )}
 
-        <div className="bg-[#0d0d0d] border border-gray-800 rounded-lg overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-gray-800">
-            <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+        <div className="bg-white border border-[var(--border-light)] rounded-2xl overflow-hidden shadow-sm">
+          <div className="p-4 sm:p-6 border-b border-[var(--border-light)]">
+            <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)] font-display flex items-center gap-2">
               <Package size={20} className="sm:w-6 sm:h-6" />
               My Orders
             </h2>
           </div>
           
           {orders.length === 0 ? (
-            <div className="p-8 sm:p-12 text-center text-gray-400">
-              <Package size={40} className="mx-auto mb-4 opacity-50 sm:w-12 sm:h-12" />
-              <p className="mb-4 text-sm sm:text-base">No orders yet.</p>
+            <div className="p-8 sm:p-12 text-center">
+              <div className="w-16 h-16 bg-[var(--surface-cream)] rounded-full flex items-center justify-center mx-auto mb-4">
+                <Package size={32} className="text-[var(--text-muted)]" />
+              </div>
+              <p className="text-[var(--text-muted)] mb-4 text-sm sm:text-base">No orders yet.</p>
               <button 
                 onClick={() => setShowPricingModal(true)}
                 className="btn-primary inline-block text-sm sm:text-base"
@@ -595,7 +580,7 @@ export default function UserDashboard() {
               </button>
             </div>
           ) : (
-            <div className="divide-y divide-gray-800">
+            <div className="divide-y divide-[var(--border-light)]">
               {orders.map((order) => {
                 const needsIdea = order.status === 'completed' && (!order.idea_description || !order.project_name);
                 
@@ -604,61 +589,61 @@ export default function UserDashboard() {
                     key={order.id} 
                     className={`p-4 sm:p-6 transition-colors ${
                       needsIdea 
-                        ? 'bg-orange-900/10 hover:bg-orange-900/20 border-l-4 border-l-orange-500' 
-                        : 'hover:bg-[#141414]'
+                        ? 'bg-[var(--cookd-orange)]/5 border-l-4 border-l-[var(--cookd-orange)]' 
+                        : 'hover:bg-[var(--surface-cream)]/50'
                     }`}
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 items-start sm:items-center">
                       <div className="flex items-center gap-2">
                         {getStatusIcon(order.status)}
-                        <span className="capitalize text-white text-sm sm:text-base">{order.status}</span>
+                        <span className="capitalize text-[var(--text-primary)] font-medium text-sm sm:text-base">{order.status}</span>
                       </div>
-                      <div className="text-white text-sm sm:text-base">
+                      <div className="text-[var(--text-secondary)] text-sm sm:text-base">
                         {getTierLabel(order.amount)}
                       </div>
-                      <div className="text-white font-semibold text-sm sm:text-base">
+                      <div className="text-[var(--text-primary)] font-bold text-sm sm:text-base">
                         {formatAmount(order.amount)}
                       </div>
                       <div>
                         {order.hall_of_fame_position ? (
                           <div className="flex items-center gap-2 flex-wrap">
-                            <Trophy className="text-[#d4a017]" size={16} />
-                            <span className="text-[#d4a017] font-bold text-sm sm:text-base">#{order.hall_of_fame_position}</span>
+                            <Trophy className="text-[var(--cookd-golden)]" size={16} />
+                            <span className="text-[var(--cookd-golden)] font-bold text-sm sm:text-base">#{order.hall_of_fame_position}</span>
                             {order.status === 'completed' && (
                               <Link 
                                 href="/hall-of-fame" 
-                                className="text-xs sm:text-sm text-gray-400 hover:text-[#d4a017]"
+                                className="text-xs sm:text-sm text-[var(--text-muted)] hover:text-[var(--cookd-orange)]"
                               >
                                 View
                               </Link>
                             )}
                           </div>
                         ) : (
-                          <span className="text-gray-500">—</span>
+                          <span className="text-[var(--text-muted)]">—</span>
                         )}
                       </div>
-                      <div className="text-gray-400 text-xs sm:text-sm">
+                      <div className="text-[var(--text-muted)] text-xs sm:text-sm">
                         {new Date(order.created_at).toLocaleDateString()}
                       </div>
                     </div>
                     
                     {/* Idea Submission Section */}
-                    <div className={`mt-4 pt-4 border-t ${needsIdea ? 'border-orange-800/50' : 'border-gray-800'}`}>
+                    <div className={`mt-4 pt-4 border-t ${needsIdea ? 'border-[var(--cookd-orange)]/20' : 'border-[var(--border-light)]'}`}>
                       <div className="flex items-start justify-between mb-2 gap-2">
                         <div className="flex items-center gap-2">
-                          <Lightbulb size={16} className={needsIdea ? 'text-orange-400' : 'text-gray-400'} />
-                          <h3 className={`text-xs sm:text-sm font-semibold ${needsIdea ? 'text-orange-400' : 'text-gray-300'}`}>
+                          <Lightbulb size={16} className={needsIdea ? 'text-[var(--cookd-orange)]' : 'text-[var(--text-muted)]'} />
+                          <h3 className={`text-xs sm:text-sm font-bold ${needsIdea ? 'text-[var(--cookd-orange)]' : 'text-[var(--text-secondary)]'}`}>
                             Project Idea
-                            {needsIdea && <span className="ml-2 text-orange-300 animate-pulse">← Required!</span>}
+                            {needsIdea && <span className="ml-2 text-[var(--cookd-orange)] animate-pulse">← Required!</span>}
                           </h3>
                         </div>
                         {editingOrderId !== order.id && order.status === 'completed' && (
                           <button
                             onClick={() => startEditingIdea(order)}
-                            className={`text-xs sm:text-sm flex items-center gap-1 flex-shrink-0 ${
+                            className={`text-xs sm:text-sm flex items-center gap-1 flex-shrink-0 font-medium ${
                               needsIdea 
-                                ? 'text-orange-400 hover:text-orange-300 font-semibold' 
-                                : 'text-gray-400 hover:text-white'
+                                ? 'text-[var(--cookd-orange)] hover:underline' 
+                                : 'text-[var(--text-muted)] hover:text-[var(--cookd-orange)]'
                             }`}
                           >
                             <Edit2 size={12} className="sm:w-[14px] sm:h-[14px]" />
@@ -670,8 +655,8 @@ export default function UserDashboard() {
                       {editingOrderId === order.id ? (
                         <div className="space-y-3">
                           <div>
-                            <label className="block text-xs font-medium text-gray-400 mb-1.5">
-                              Project Name <span className="text-red-400">*</span>
+                            <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">
+                              Project Name <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -681,12 +666,12 @@ export default function UserDashboard() {
                                 [order.id]: e.target.value,
                               })}
                               placeholder="e.g., TaskFlow, BudgetBuddy, FitTracker..."
-                              className="w-full bg-[#141414] border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-[#d4a017] text-sm sm:text-base"
+                              className="w-full bg-[var(--surface-cream)]/50 border border-[var(--border-light)] rounded-xl px-3 py-2.5 text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--cookd-orange)] text-sm sm:text-base transition-colors"
                               disabled={saving === order.id}
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                            <label className="block text-xs font-bold text-[var(--text-primary)] mb-1.5">
                               Project Description
                             </label>
                             <textarea
@@ -696,7 +681,7 @@ export default function UserDashboard() {
                                 [order.id]: e.target.value,
                               })}
                               placeholder="Describe your project idea here... What do you want built? What features should it have? Any specific design preferences? The more detail you provide, the better I can build it for you!"
-                              className="w-full bg-[#141414] border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#d4a017] min-h-[120px] resize-y text-sm sm:text-base"
+                              className="w-full bg-[var(--surface-cream)]/50 border border-[var(--border-light)] rounded-xl p-3 text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--cookd-orange)] min-h-[120px] resize-y text-sm sm:text-base transition-colors"
                               disabled={saving === order.id}
                             />
                           </div>
@@ -720,35 +705,35 @@ export default function UserDashboard() {
                           </div>
                         </div>
                       ) : (
-                        <div className="text-gray-400 text-xs sm:text-sm">
+                        <div className="text-[var(--text-muted)] text-xs sm:text-sm">
                           {order.idea_description && order.project_name ? (
                             <div>
                               <div className="mb-2">
-                                <span className="text-gray-500 text-xs">Project Name:</span>
-                                <p className="text-white font-medium">{order.project_name}</p>
+                                <span className="text-[var(--text-muted)] text-xs">Project Name:</span>
+                                <p className="text-[var(--text-primary)] font-medium">{order.project_name}</p>
                               </div>
                               <div>
-                                <span className="text-gray-500 text-xs">Description:</span>
-                                <p className="whitespace-pre-wrap break-words text-gray-300">{order.idea_description}</p>
+                                <span className="text-[var(--text-muted)] text-xs">Description:</span>
+                                <p className="whitespace-pre-wrap break-words text-[var(--text-secondary)]">{order.idea_description}</p>
                               </div>
-                              <p className="mt-3 text-green-400 text-xs flex items-center gap-1">
+                              <p className="mt-3 text-[var(--cookd-green)] text-xs flex items-center gap-1 font-medium">
                                 <CheckCircle size={12} />
                                 Idea submitted — I'll review it and start building soon!
                               </p>
                             </div>
                           ) : order.status === 'completed' ? (
-                            <div className="bg-orange-900/20 border border-orange-800/50 rounded-lg p-3">
-                              <p className="text-orange-300 font-medium mb-1 flex items-center gap-1">
+                            <div className="bg-[var(--cookd-orange)]/5 border border-[var(--cookd-orange)]/20 rounded-xl p-3">
+                              <p className="text-[var(--cookd-orange)] font-medium mb-1 flex items-center gap-1">
                                 <AlertCircle size={14} />
                                 No idea submitted yet!
                               </p>
-                              <p className="text-gray-400">
-                                Click <span className="text-orange-400 font-medium">"Submit Idea"</span> above to describe what you want built. 
+                              <p className="text-[var(--text-muted)]">
+                                Click <span className="text-[var(--cookd-orange)] font-medium">"Submit Idea"</span> above to describe what you want built. 
                                 Your project won't be started until you submit your idea.
                               </p>
                             </div>
                           ) : (
-                            <p className="italic text-gray-500">Complete your payment to submit an idea.</p>
+                            <p className="italic text-[var(--text-muted)]">Complete your payment to submit an idea.</p>
                           )}
                         </div>
                       )}
@@ -761,12 +746,12 @@ export default function UserDashboard() {
         </div>
 
         {orders.some(o => o.status === 'completed' && o.hall_of_fame_position) && (
-          <div className="mt-4 sm:mt-6 bg-[#0d0d0d] border border-gray-800 rounded-lg p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <Trophy className="text-[#d4a017]" size={18} />
+          <div className="mt-4 sm:mt-6 bg-[var(--cookd-golden)]/10 border border-[var(--cookd-golden)]/20 rounded-2xl p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] font-display mb-2 flex items-center gap-2">
+              <Trophy className="text-[var(--cookd-golden)]" size={18} />
               Your Hall of Fame Spot
             </h3>
-            <p className="text-gray-400 text-xs sm:text-sm">
+            <p className="text-[var(--text-secondary)] text-xs sm:text-sm">
               Your project will appear in the Hall of Fame once it's been created and deployed by the admin.
             </p>
           </div>

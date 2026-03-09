@@ -20,10 +20,8 @@ function PaymentSuccessContent() {
   const [paymentComplete, setPaymentComplete] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Dodo Payments redirects with payment_id and status params
   const paymentId = searchParams.get('payment_id');
   const paymentStatus = searchParams.get('status');
-  // Also check for session_id as fallback
   const sessionId = searchParams.get('session_id');
   const supabase = createClient();
 
@@ -32,7 +30,6 @@ function PaymentSuccessContent() {
   }, []);
 
   const checkPaymentStatus = async () => {
-    // Check if user is already logged in
     const { data: { user } } = await supabase.auth.getUser();
     
     if (user) {
@@ -42,18 +39,15 @@ function PaymentSuccessContent() {
 
     console.log('Payment success params:', { paymentId, paymentStatus, sessionId });
     
-    // If we have a payment_id from Dodo redirect, use it to complete the order
     if (paymentId) {
       console.log('Processing payment_id:', paymentId, 'status:', paymentStatus);
       
-      // Check if payment was reported as failed/cancelled in URL
       if (paymentStatus === 'failed' || paymentStatus === 'cancelled') {
         setPaymentError('Payment was not completed. Please try again.');
         setLoading(false);
         return;
       }
       
-      // Payment succeeded (or status=succeeded) - complete the order
       try {
         const response = await fetch('/api/dodo/complete-order', {
           method: 'POST',
@@ -67,13 +61,11 @@ function PaymentSuccessContent() {
         if (response.ok && data.success) {
           setPaymentComplete(true);
           
-          // Set email from order
           if (data.order?.payer_email) {
             setCustomerEmail(data.order.payer_email);
             setEmail(data.order.payer_email);
           }
           
-          // If user is logged in, try to link orders
           if (user) {
             try {
               await fetch('/api/orders/link-by-email', { method: 'POST' });
@@ -82,8 +74,6 @@ function PaymentSuccessContent() {
             }
           }
         } else {
-          // API call failed but payment might have succeeded
-          // Show success anyway since Dodo confirmed payment
           console.warn('Complete order API failed:', data.error);
           if (paymentStatus === 'succeeded') {
             setPaymentComplete(true);
@@ -93,7 +83,6 @@ function PaymentSuccessContent() {
         }
       } catch (e) {
         console.error('Error completing order:', e);
-        // If status was succeeded, show success anyway
         if (paymentStatus === 'succeeded') {
           setPaymentComplete(true);
         } else {
@@ -105,7 +94,6 @@ function PaymentSuccessContent() {
       return;
     }
     
-    // If we have a session ID (fallback), check the payment status
     if (sessionId) {
       try {
         const response = await fetch(`/api/dodo/session-info?session_id=${encodeURIComponent(sessionId)}`);
@@ -114,9 +102,7 @@ function PaymentSuccessContent() {
           const data = await response.json();
           console.log('Session info:', data);
           
-          // Check if payment succeeded or is processing
           if (data.status === 'succeeded' || data.status === 'processing') {
-            // Ensure order exists (fallback if webhook hasn't run)
             try {
               const createOrderResponse = await fetch('/api/dodo/create-order-from-session', {
                 method: 'POST',
@@ -128,7 +114,6 @@ function PaymentSuccessContent() {
                 const orderData = await createOrderResponse.json();
                 console.log('Order created/verified from session:', orderData);
                 
-                // Use email from order if available
                 if (orderData.order?.payer_email) {
                   setCustomerEmail(orderData.order.payer_email);
                   setEmail(orderData.order.payer_email);
@@ -143,13 +128,11 @@ function PaymentSuccessContent() {
             
             setPaymentComplete(true);
             
-            // Set email from session if not already set from order
             if (!customerEmail && data.customerEmail) {
               setCustomerEmail(data.customerEmail);
               setEmail(data.customerEmail);
             }
             
-            // If user is logged in, try to link orders
             if (user) {
               try {
                 await fetch('/api/orders/link-by-email', { method: 'POST' });
@@ -160,10 +143,8 @@ function PaymentSuccessContent() {
           } else if (data.status === 'failed' || data.status === 'cancelled') {
             setPaymentError('Payment was not completed. Please try again.');
           } else if (data.status === 'pending') {
-            // Payment hasn't started yet - user might have arrived here without completing
             setPaymentError('Payment was not completed. Please try again.');
           } else {
-            // Unknown status - try to create order anyway
             console.log('Unknown payment status:', data.status);
             setPaymentComplete(true);
             
@@ -185,7 +166,6 @@ function PaymentSuccessContent() {
       return;
     }
     
-    // No payment_id or session_id - check if there's a recent order for this user
     if (user) {
       try {
         const { data: recentOrders } = await supabase
@@ -206,7 +186,6 @@ function PaymentSuccessContent() {
       }
     }
     
-    // Show success page anyway (user might have navigated here directly)
     setPaymentComplete(true);
     setLoading(false);
   };
@@ -285,29 +264,27 @@ function PaymentSuccessContent() {
     router.refresh();
   };
 
-  // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-[#f8f8f8] flex flex-col items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#d4a017] mb-4" />
-        <p className="text-gray-400">Verifying your payment...</p>
+      <div className="min-h-screen bg-[var(--surface-cream)] flex flex-col items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[var(--cookd-orange)]/20 border-t-[var(--cookd-orange)] rounded-full animate-spin mb-4" />
+        <p className="text-[var(--text-muted)] font-medium">Verifying your payment...</p>
       </div>
     );
   }
 
-  // Payment error state
   if (paymentError) {
     return (
-      <div className="min-h-screen bg-black text-[#f8f8f8] flex items-center justify-center px-6">
+      <div className="min-h-screen bg-[var(--surface-cream)] flex items-center justify-center px-6">
         <div className="max-w-md w-full text-center">
           <div className="mb-8 flex justify-center">
-            <div className="w-20 h-20 bg-red-900/30 rounded-full flex items-center justify-center">
-              <AlertCircle className="text-red-400 w-10 h-10" />
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center">
+              <AlertCircle className="text-red-500 w-10 h-10" />
             </div>
           </div>
           
-          <h1 className="text-3xl font-bold text-white mb-4">Payment Issue</h1>
-          <p className="text-gray-400 mb-8">{paymentError}</p>
+          <h1 className="text-3xl font-bold text-[var(--text-primary)] font-display mb-4">Payment Issue</h1>
+          <p className="text-[var(--text-secondary)] mb-8">{paymentError}</p>
 
           <div className="flex flex-col gap-4">
             <Link href="/#pricing" className="btn-primary inline-flex items-center justify-center gap-2">
@@ -323,19 +300,18 @@ function PaymentSuccessContent() {
     );
   }
 
-  // If user is logged in, show simple success and redirect option
   if (isLoggedIn && paymentComplete) {
     return (
-      <div className="min-h-screen bg-black text-[#f8f8f8] flex items-center justify-center px-6">
+      <div className="min-h-screen bg-[var(--surface-cream)] flex items-center justify-center px-6">
         <div className="max-w-md w-full text-center">
           <div className="mb-8 flex justify-center">
-            <div className="w-20 h-20 bg-green-900/30 rounded-full flex items-center justify-center">
-              <CheckCircle className="text-green-400 w-10 h-10" />
+            <div className="w-20 h-20 bg-[var(--cookd-green)]/10 rounded-full flex items-center justify-center">
+              <CheckCircle className="text-[var(--cookd-green)] w-10 h-10" />
             </div>
           </div>
           
-          <h1 className="text-3xl font-bold text-white mb-4">Payment Successful!</h1>
-          <p className="text-gray-400 mb-8">
+          <h1 className="text-3xl font-bold text-[var(--text-primary)] font-display mb-4">Payment Successful!</h1>
+          <p className="text-[var(--text-secondary)] mb-8">
             Thank you for your purchase! Your order has been created and is ready for you.
           </p>
 
@@ -348,28 +324,25 @@ function PaymentSuccessContent() {
     );
   }
 
-  // Guest user - show sign up form
   return (
-    <div className="min-h-screen bg-black text-[#f8f8f8] flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-[var(--surface-cream)] flex items-center justify-center px-6 py-12">
       <div className="max-w-md w-full">
-        {/* Success Header */}
         <div className="text-center mb-8">
           <div className="mb-6 flex justify-center">
-            <div className="w-20 h-20 bg-green-900/30 rounded-full flex items-center justify-center">
-              <CheckCircle className="text-green-400 w-10 h-10" />
+            <div className="w-20 h-20 bg-[var(--cookd-green)]/10 rounded-full flex items-center justify-center">
+              <CheckCircle className="text-[var(--cookd-green)] w-10 h-10" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Payment Successful!</h1>
-          <p className="text-gray-400">
+          <h1 className="text-3xl font-bold text-[var(--text-primary)] font-display mb-2">Payment Successful!</h1>
+          <p className="text-[var(--text-secondary)]">
             Create your account to access your order and submit your project idea.
           </p>
         </div>
 
-        {/* Sign Up Form */}
-        <div className="bg-[#0d0d0d] border border-gray-800 rounded-xl p-6 sm:p-8">
-          <div className="flex items-center gap-3 mb-6 p-3 bg-[#d4a017]/10 border border-[#d4a017]/30 rounded-lg">
-            <Mail className="text-[#d4a017] flex-shrink-0" size={20} />
-            <p className="text-sm text-gray-300">
+        <div className="bg-white border border-[var(--border-light)] rounded-2xl p-6 sm:p-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-6 p-3 bg-[var(--cookd-orange)]/10 border border-[var(--cookd-orange)]/20 rounded-xl">
+            <Mail className="text-[var(--cookd-orange)] flex-shrink-0" size={20} />
+            <p className="text-sm text-[var(--text-secondary)]">
               {customerEmail 
                 ? `Create an account with ${customerEmail} to access your order.`
                 : 'Create an account with the email you used for payment.'}
@@ -378,7 +351,7 @@ function PaymentSuccessContent() {
 
           <form onSubmit={handleSignUp} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="email" className="block text-sm font-bold text-[var(--text-primary)] mb-2">
                 Email
               </label>
               <input
@@ -387,18 +360,18 @@ function PaymentSuccessContent() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-2 bg-[#141414] border border-gray-800 rounded-lg text-white focus:outline-none focus:border-[#d4a017]"
+                className="w-full px-4 py-3 bg-[var(--surface-cream)]/50 border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] focus:outline-none focus:border-[var(--cookd-orange)] transition-colors"
                 placeholder="your@email.com"
               />
               {customerEmail && email !== customerEmail && (
-                <p className="text-xs text-orange-400 mt-1">
+                <p className="text-xs text-[var(--cookd-orange)] mt-1 font-medium">
                   Use {customerEmail} to access your order
                 </p>
               )}
             </div>
             
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="password" className="block text-sm font-bold text-[var(--text-primary)] mb-2">
                 Password
               </label>
               <input
@@ -408,13 +381,13 @@ function PaymentSuccessContent() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-2 bg-[#141414] border border-gray-800 rounded-lg text-white focus:outline-none focus:border-[#d4a017]"
+                className="w-full px-4 py-3 bg-[var(--surface-cream)]/50 border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] focus:outline-none focus:border-[var(--cookd-orange)] transition-colors"
                 placeholder="••••••••"
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-bold text-[var(--text-primary)] mb-2">
                 Confirm Password
               </label>
               <input
@@ -424,19 +397,19 @@ function PaymentSuccessContent() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-2 bg-[#141414] border border-gray-800 rounded-lg text-white focus:outline-none focus:border-[#d4a017]"
+                className="w-full px-4 py-3 bg-[var(--surface-cream)]/50 border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] focus:outline-none focus:border-[var(--cookd-orange)] transition-colors"
                 placeholder="••••••••"
               />
             </div>
 
             {error && (
-              <div className="p-3 rounded-lg text-sm bg-red-900/20 border border-red-800 text-red-400">
+              <div className="p-3 rounded-xl text-sm bg-red-50 border border-red-100 text-red-500">
                 {error}
               </div>
             )}
 
             {success && (
-              <div className="p-3 rounded-lg text-sm bg-green-900/20 border border-green-800 text-green-400">
+              <div className="p-3 rounded-xl text-sm bg-[var(--cookd-green)]/10 border border-[var(--cookd-green)]/20 text-[var(--cookd-green)]">
                 {success}
               </div>
             )}
@@ -444,7 +417,7 @@ function PaymentSuccessContent() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -460,8 +433,8 @@ function PaymentSuccessContent() {
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-gray-800">
-            <p className="text-center text-gray-400 text-sm mb-4">
+          <div className="mt-6 pt-6 border-t border-[var(--border-light)]">
+            <p className="text-center text-[var(--text-muted)] text-sm mb-4">
               Already have an account?
             </p>
             <form onSubmit={handleSignIn} className="space-y-3">
@@ -476,7 +449,7 @@ function PaymentSuccessContent() {
           </div>
         </div>
 
-        <p className="text-center text-gray-500 text-sm mt-6">
+        <p className="text-center text-[var(--text-muted)] text-sm mt-6">
           Your order will be automatically linked to your account.
         </p>
       </div>
@@ -487,12 +460,11 @@ function PaymentSuccessContent() {
 export default function PaymentSuccess() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-black text-[#f8f8f8] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#d4a017]" />
+      <div className="min-h-screen bg-[var(--surface-cream)] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[var(--cookd-orange)]/20 border-t-[var(--cookd-orange)] rounded-full animate-spin" />
       </div>
     }>
       <PaymentSuccessContent />
     </Suspense>
   );
 }
-

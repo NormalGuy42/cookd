@@ -15,18 +15,18 @@ export type TierType = 'premium' | 'standard' | 'hall_of_fame' | 'bare_minimum';
 // Get product IDs from environment (called inside handlers, not at module scope)
 export function getProductIds() {
   return {
-    premium: process.env.DODO_PRODUCT_PREMIUM || '',
-    standard: process.env.DODO_PRODUCT_STANDARD || '',
-    hall_of_fame: process.env.DODO_PRODUCT_HALL_OF_FAME || '',
+    premium: process.env.DODO_PRODUCT_TOP_OF_HALL_OF_FAME || '',
+    standard: process.env.DODO_PRODUCT_TIER_2 || '',
+    hall_of_fame: process.env.DODO_PRODUCT_TIER_3 || '',
     bare_minimum: process.env.DODO_PRODUCT_BARE_MINIMUM || '',
   };
 }
 
 // For backwards compatibility
 export const DODO_PRODUCT_IDS = {
-  get premium() { return process.env.DODO_PRODUCT_PREMIUM || ''; },
-  get standard() { return process.env.DODO_PRODUCT_STANDARD || ''; },
-  get hall_of_fame() { return process.env.DODO_PRODUCT_HALL_OF_FAME || ''; },
+  get premium() { return process.env.DODO_PRODUCT_TOP_OF_HALL_OF_FAME || ''; },
+  get standard() { return process.env.DODO_PRODUCT_TIER_2 || ''; },
+  get hall_of_fame() { return process.env.DODO_PRODUCT_TIER_3 || ''; },
   get bare_minimum() { return process.env.DODO_PRODUCT_BARE_MINIMUM || ''; },
 };
 

@@ -98,9 +98,9 @@ export async function POST(request: NextRequest) {
 
     // Fail fast if product IDs are missing
     const productEnv: Record<string, string | undefined> = {
-      premium: process.env.DODO_PRODUCT_PREMIUM,
-      standard: process.env.DODO_PRODUCT_STANDARD,
-      hall_of_fame: process.env.DODO_PRODUCT_HALL_OF_FAME,
+      premium: process.env.DODO_PRODUCT_TOP_OF_HALL_OF_FAME,
+      standard: process.env.DODO_PRODUCT_TIER_2,
+      hall_of_fame: process.env.DODO_PRODUCT_TIER_3,
       bare_minimum: process.env.DODO_PRODUCT_BARE_MINIMUM,
     };
     
