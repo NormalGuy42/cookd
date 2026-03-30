@@ -2,7 +2,13 @@
 
 import { Idea, Category } from '@/types/database';
 import { Edit, Trash2 } from 'lucide-react';
-import TweetEmbed, { containsTweetUrl } from './TweetEmbed';
+import TweetEmbed, { 
+  YouTubeEmbed, 
+  InstagramEmbed, 
+  LinkPreview,
+  extractAllUrls,
+  getCleanDescription 
+} from './TweetEmbed';
 
 interface IdeaCardProps {
   idea: Idea & { categories?: Category | null };
@@ -12,27 +18,17 @@ interface IdeaCardProps {
   onStatusChange: (idea: Idea, newStatus: 'plan_to_do' | 'done' | 'dropped') => void;
 }
 
-// Remove tweet URL from description for cleaner display
-function getCleanDescription(description: string | null): string | null {
-  if (!description) return null;
-  const urlPattern = /(https?:\/\/(?:twitter\.com|x\.com)\/\w+\/status(?:es)?\/\d+)/gi;
-  return description.replace(urlPattern, '').trim() || null;
-}
-
 export default function IdeaCard({ idea, category, onEdit, onDelete, onStatusChange }: IdeaCardProps) {
-  const tweetUrl = idea.description ? containsTweetUrl(idea.description) : null;
+  const urls = extractAllUrls(idea.description);
   const cleanDescription = getCleanDescription(idea.description);
-  const statusLabels = {
-    plan_to_do: 'Plan to do',
-    done: 'Done',
-    dropped: 'Dropped',
-  };
-
+  
   const statusColors = {
     plan_to_do: 'bg-blue-50 text-blue-600 border-blue-100',
     done: 'bg-[var(--cookd-green)]/10 text-[var(--cookd-green)] border-[var(--cookd-green)]/20',
     dropped: 'bg-red-50 text-red-500 border-red-100',
   };
+
+  const hasEmbeds = urls.tweet || urls.youtube || urls.instagram || urls.generic;
 
   return (
     <div className="bg-white border border-[var(--border-light)] rounded-3xl p-8 hover:border-[var(--cookd-orange)]/30 transition-all shadow-sm card-hover flex flex-col h-full group">
@@ -65,9 +61,37 @@ export default function IdeaCard({ idea, category, onEdit, onDelete, onStatusCha
               {cleanDescription}
             </p>
           )}
-          {tweetUrl && (
-            <div className="mt-4 rounded-2xl overflow-hidden border border-[var(--border-light)]">
-              <TweetEmbed tweetUrl={tweetUrl} />
+          
+          {/* Media Embeds */}
+          {hasEmbeds && (
+            <div className="mt-4 space-y-3">
+              {/* YouTube gets priority and full width */}
+              {urls.youtube && (
+                <div className="rounded-2xl overflow-hidden">
+                  <YouTubeEmbed videoId={urls.youtube.videoId} url={urls.youtube.url} />
+                </div>
+              )}
+              
+              {/* Twitter embed */}
+              {urls.tweet && (
+                <div className="rounded-2xl overflow-hidden border border-[var(--border-light)]">
+                  <TweetEmbed tweetUrl={urls.tweet} />
+                </div>
+              )}
+              
+              {/* Instagram embed */}
+              {urls.instagram && (
+                <div className="rounded-2xl overflow-hidden border border-[var(--border-light)]">
+                  <InstagramEmbed url={urls.instagram} />
+                </div>
+              )}
+              
+              {/* Generic URL preview */}
+              {urls.generic && (
+                <div className="rounded-2xl overflow-hidden border border-[var(--border-light)]">
+                  <LinkPreview url={urls.generic} />
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -106,4 +130,3 @@ export default function IdeaCard({ idea, category, onEdit, onDelete, onStatusCha
     </div>
   );
 }
-

@@ -337,9 +337,12 @@ export default function Home() {
               I hate AI vibecoded slop and I hate Vercel. However I cannot deny how powerful vibecoding is, so I decided to kill 2 birds with one stone by building my own hosting platform
               </p>
               <p className="text-[var(--text-secondary)] leading-relaxed mb-6">
-                To be completely honest with you, this is the second version of this website. My first attempt at building this idea was through <a href="https://slopcel.com" target="_blank" rel="noopener noreferrer" className="text-[var(--cookd-orange)] hover:opacity-80 transition-opacity font-medium">Slopcel.com</a> but I felt like the domain and branding didn't fit with what I really had in mind. That's why I created Cookd: a platform that celebrates human creativity and ingenuity.
+                To be completely honest with you, this is the second version of this website. My first attempt at building this idea was through <a href="https://slopcel.com" target="_blank" rel="noopener noreferrer" className="text-[var(--cookd-orange)] hover:opacity-80 transition-opacity font-medium">Slopcel.com</a> but I felt like the domain and branding didn't fit with what I really had in mind, and because of <a href="https://x.com/NabilHunt" target="_blank" rel="noopener noreferrer" className="text-[var(--cookd-orange)] hover:opacity-80 transition-opacity font-medium">Nabil Hunt</a> on Twitter I finally decided to change it to something different. 
               </p>
-              
+              <blockquote className="twitter-tweet"><p lang="en" dir="ltr">I think your ideal users wouldn&#39;t want to call what they ship slop, maybe the name is bad</p>&mdash; Nabil Hunt (@NabilHunt) <a href="https://twitter.com/NabilHunt/status/2006000028624748710?ref_src=twsrc%5Etfw">December 30, 2025</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charSet="utf-8"></script>
+              <p className="text-[var(--text-secondary)] leading-relaxed mb-6">
+              It's thanks to him that Cookd was born: a platform that celebrates human creativity and ingenuity.
+              </p>
               <div className="bg-[var(--surface-cream)] rounded-2xl p-6 mb-8 border border-[var(--border-light)]">
                 <h3 className="font-bold text-[var(--text-primary)] mb-4 font-display flex items-center gap-2">
                   <Sparkles size={20} className="text-[var(--cookd-orange)]" />
